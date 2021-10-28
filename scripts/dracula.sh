@@ -8,6 +8,7 @@ source $current_dir/utils.sh
 main()
 {
   datafile=/tmp/.dracula-tmux-data
+  ipinfo_file=/tmp/.dracula-tmux-ipinfo
 
   # set configuration option variables
   show_fahrenheit=$(get_tmux_option "@dracula-show-fahrenheit" true)
@@ -44,6 +45,8 @@ main()
       left_icon="☺";;
     session)
       left_icon="#S";;
+    hostname)
+      left_icon="#H #S";;
     window)
       left_icon="#W";;
     *)
@@ -67,6 +70,12 @@ main()
   if [[ "${plugins[@]}" =~ "weather" ]]; then
     $current_dir/sleep_weather.sh $show_fahrenheit $show_location &
   fi
+
+  # start ip-ino script in background, get isp from ip-api.com
+  if [[ "${plugins[@]}" =~ "ip-info" ]]; then
+    $current_dir/sleep_ipinfo.sh &
+  fi
+
 
   # Set timezone unless hidden by configuration
   case $show_timezone in
@@ -171,6 +180,14 @@ main()
 
       IFS=' ' read -r -a colors <<< $(get_tmux_option "@dracula-weather-colors" "orange dark_gray")
       script="#(cat $datafile)"
+    fi
+
+    if [ $plugin = "ip-info" ]; then
+      while [ ! -f $ipinfo_file ]; do
+        sleep 0.01
+      done
+      IFS=' ' read -r -a colors <<< $(get_tmux_option "@dracula-ip-info-colors" "yellow dark_gray")
+      script="#(cat $ipinfo_file)"
     fi
 
     if [ $plugin = "time" ]; then
