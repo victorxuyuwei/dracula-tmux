@@ -7,11 +7,12 @@
 
 main()
 {
-  result=$(curl --noproxy '*' ip-api.com/line?fields=isp)
-  if [ $? -eq 0 ]; then
-    echo "🔗 $result"
+  if result=$(curl --noproxy "*" "ip-api.com/line?fields=isp" 2>/dev/null); then
+    echo "🔗 ${result}"
+    return 0
   else
     echo "🔌 Offline"
+    return 1
   fi
 }
 

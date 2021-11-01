@@ -4,6 +4,7 @@ export LC_ALL=en_US.UTF-8
 
 LOCKFILE=/tmp/.dracula-tmux-ipinfo.lock
 DATAFILE=/tmp/.dracula-tmux-ipinfo
+LOGFILE=/tmp/dracula.log
 
 ensure_single_process()
 {
@@ -17,25 +18,27 @@ main()
   ensure_single_process
 
   current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
-  if [ ! -f $DATAFILE ]; then
-    printf "Loading..." > $DATAFILE
-  fi
 
-  $current_dir/ip_info.sh > $DATAFILE
-  
+  # if [ ! -f $DATAFILE ]; then
+  echo "Loading..." > $DATAFILE
+  # fi
+
+  # ${current_dir}/ip_info.sh $DATAFILE
+  # echo $result > $DATAFILE
+
+  # tmux session not build so fast and may cause follow script not get into
+  sleep 0.5
+
   while tmux has-session &> /dev/null
   do
-    $current_dir/ip_info.sh > $DATAFILE
-    if tmux has-session &> /dev/null
-    then
-      if cat $DATAFILE | grep Offline &> /dev/null; then
-        sleep 20
-      else
-        sleep 3600
-      fi
+    if result=$(${current_dir}/ip_info.sh); then
+      echo $result > $DATAFILE
+      # echo "$(date -Is): online and sleep 3600" >> $LOGFILE
+      sleep 3600
     else
-      break
+      echo $result > $DATAFILE
+      # echo "$(date -Is): offline and sleep 20" >> $LOGFILE
+      sleep 20
     fi
   done
 
